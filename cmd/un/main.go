@@ -8,19 +8,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func main() {
-	log := logrus.New()
-	log.SetLevel(logrus.WarnLevel)
+type App struct {
+	Log     *logrus.Logger
+	RootCmd *RootCmd
+}
 
+func main() {
 	ctx, cancel := shutdown.Context(context.Background())
 	defer cancel()
 
-	if err := NewRootCmd(log).ExecuteContext(ctx); err != nil {
-		log.Errorf("failed to execute command: %v", err)
+	app := InitApp(ctx)
+	app.Log.SetLevel(logrus.WarnLevel)
+
+	if err := app.RootCmd.Execute(); err != nil {
+		app.Log.Errorf("failed to execute command: %v", err)
 		if ctx.Err() != nil {
-			log.Errorf("interrupted: %v\n", ctx.Err())
+			app.Log.Errorf("interrupted: %v\n", ctx.Err())
 			if sig := shutdown.SignalFromContext(ctx); sig != nil {
-				log.Errorf("signal: %v\n", *sig)
+				app.Log.Errorf("signal: %v\n", *sig)
 			}
 		}
 		os.Exit(1)

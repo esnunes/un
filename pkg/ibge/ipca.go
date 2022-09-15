@@ -25,27 +25,41 @@ type Serie struct {
 	Value float64
 }
 
+type IPCA struct {
+	Client *Client
+}
+
+func (i *IPCA) Rate(ctx context.Context, from, to time.Time) ([]Serie, error) {
+	return i.Client.Aggregated(ctx, IdxIPCA, from, to)
+}
+
 type Client struct {
 	BaseURL string
-	Context context.Context
 	Log     *logrus.Logger
 	HTTP    *http.Client
 }
 
-func (c *Client) IPCA(dateFrom, dateTo time.Time) ([]Serie, error) {
-	if dateTo.IsZero() {
-		c.Log.Infof("ibge: retrieving IPCA index for %s", dateFrom)
+type Index int
+
+const (
+	IdxIPCA   Index = 1737
+	IdxIPCA15 Index = 3065
+)
+
+func (c *Client) Aggregated(ctx context.Context, idx Index, from, to time.Time) ([]Serie, error) {
+	if to.IsZero() {
+		c.Log.Infof("ibge: retrieving index %v for %s", idx, from)
 	} else {
-		c.Log.Infof("ibge: retrieving IPCA index from %s to %s", dateFrom, dateTo)
+		c.Log.Infof("ibge: retrieving index %v from %s to %s", idx, from, to)
 	}
 
 	path := fmt.Sprintf(
 		"/agregados/1737/periodos/%s/variaveis/63?localidades=N1[all]",
-		yearMonthSequence(dateFrom, dateTo),
+		yearMonthSequence(from, to),
 	)
 	c.Log.Infof("ibge: making http request to: %v", path)
 
-	body, err := c.Get(path)
+	body, err := c.Get(ctx, path)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +104,8 @@ func (c *Client) IPCA(dateFrom, dateTo time.Time) ([]Serie, error) {
 	return series, nil
 }
 
-func (c *Client) Get(path string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(c.context(), http.MethodGet, c.baseURL()+path, nil)
+func (c *Client) Get(ctx context.Context, path string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL()+path, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -113,13 +127,6 @@ func (c *Client) baseURL() string {
 		return c.BaseURL
 	}
 	return DefaultBaseURL
-}
-
-func (c *Client) context() context.Context {
-	if c.Context != nil {
-		return c.Context
-	}
-	return context.Background()
 }
 
 func (c *Client) client() *http.Client {
