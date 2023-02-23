@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/esnunes/un/pkg/shutdown"
+	gpt "github.com/sashabaranov/go-gpt3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	ctx, cancel := shutdown.Context(context.Background())
 	defer cancel()
 
-	app := InitApp(ctx)
+	app := InitApp(ctx, gpt.NewClient(os.Getenv("OPENAI_KEY")))
 	app.Log.SetLevel(logrus.WarnLevel)
 
 	if err := app.RootCmd.Execute(); err != nil {

@@ -12,10 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/esnunes/un/cmd/un/ipca"
+	"github.com/esnunes/un/cmd/un/openai"
 	"github.com/esnunes/un/pkg/ibge"
+	gpt "github.com/sashabaranov/go-gpt3"
 )
 
-func InitApp(ctx context.Context) *App {
+func InitApp(ctx context.Context, gptClient *gpt.Client) *App {
 	wire.Build(
 		// general
 		logrus.New,
@@ -31,6 +33,11 @@ func InitApp(ctx context.Context) *App {
 		ipca.NewRateCmd,
 		wire.Bind(new(ipca.RateRetriever), new(*ibge.IPCA)),
 		wire.Struct(new(ipca.RateOptions), "*"),
+
+		// cmd/un/openai
+		openai.NewRootCmd,
+		openai.NewConciseCmd,
+		wire.Struct(new(openai.ConciseOptions), "*"),
 
 		// pkg/ibge
 		wire.Struct(new(ibge.Client), "Log", "HTTP"),
