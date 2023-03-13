@@ -11,6 +11,7 @@ import (
 	"github.com/google/wire"
 	"github.com/sirupsen/logrus"
 
+	"github.com/esnunes/un/cmd/un/finance"
 	"github.com/esnunes/un/cmd/un/ipca"
 	"github.com/esnunes/un/cmd/un/openai"
 	"github.com/esnunes/un/pkg/ibge"
@@ -38,6 +39,11 @@ func InitApp(ctx context.Context, gptClient *gpt.Client) *App {
 		openai.NewRootCmd,
 		openai.NewConciseCmd,
 		wire.Struct(new(openai.ConciseOptions), "*"),
+
+		// cmd/un/finance
+		finance.NewRootCmd,
+		finance.NewRentalTaxCmd,
+		wire.Struct(new(finance.RentalTaxOptions), "*"),
 
 		// pkg/ibge
 		wire.Struct(new(ibge.Client), "Log", "HTTP"),

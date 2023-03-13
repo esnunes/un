@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/esnunes/un/cmd/un/finance"
 	"github.com/esnunes/un/cmd/un/ipca"
 	"github.com/esnunes/un/cmd/un/openai"
 	"github.com/sirupsen/logrus"
@@ -9,7 +10,9 @@ import (
 
 type RootCmd struct{ *cobra.Command }
 
-func NewRootCmd(log *logrus.Logger, ipca *ipca.RootCmd, openai *openai.RootCmd) *RootCmd {
+func NewRootCmd(
+	log *logrus.Logger, ipca *ipca.RootCmd, openai *openai.RootCmd, finance *finance.RootCmd,
+) *RootCmd {
 	verbose := false
 
 	cmd := &cobra.Command{
@@ -30,6 +33,7 @@ func NewRootCmd(log *logrus.Logger, ipca *ipca.RootCmd, openai *openai.RootCmd) 
 
 	cmd.AddCommand(ipca.Command)
 	cmd.AddCommand(openai.Command)
+	cmd.AddCommand(finance.Command)
 
 	return &RootCmd{cmd}
 }
